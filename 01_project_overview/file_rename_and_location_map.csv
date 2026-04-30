@@ -1,0 +1,141 @@
+original_path,new_path,notes
+BadgersSG2024.rds,02_data/01_processed_badger_data/badger_capture_diagnostic_cleaned_2024.rds,Main cleaned badger capture/diagnostic dataset.
+CHexample.csv,02_data/02_example_capture_histories/example_capture_history.csv,Small example capture history file.
+CombineDataSets_TCH1.R,03_scripts/01_data_preparation/01_merge_clean_capture_diagnostic_data.R,Combines raw capture/diagnostic data.
+PaperCode.R,03_scripts/03_early_multistate_models/01_paper_code_multistate_reference.R,Early/reference multistate model code.
+MSModel1.R,03_scripts/03_early_multistate_models/02_simple_3state_multistate_model.R,Initial simple multistate model.
+Multisite_shorthand.R,03_scripts/03_early_multistate_models/03_multisite_model_shorthand.R,Prototype multisite model shorthand.
+Multisite_longhand.R,03_scripts/03_early_multistate_models/04_multisite_model_longhand.R,Prototype multisite model longhand.
+Ergon_and_Gardner2013_workingNIMBLE.R,03_scripts/05_ergon_gardner_spatial_cmr/baseline_and_reference/01_ergon_gardner_2013_working_nimble_reference.R,Working NIMBLE adaptation of Ergon & Gardner 2013.
+SpatialCMR/README.md,01_project_overview/original_spatial_cmr_readme.md,Original SpatialCMR README.
+SpatialCMR/SpatialCMR.Rproj,06_rstudio_and_git_metadata/SpatialCMR.Rproj,Original RStudio project file.
+SpatialCMR/.Rhistory,06_rstudio_and_git_metadata/Rhistory_original,Original R history.
+SpatialCMR/.gitignore,06_rstudio_and_git_metadata/gitignore_original,Original gitignore.
+SpatialCMR/spatialInfo.RData,02_data/04_saved_spatial_objects/spatial_grid_and_sett_objects.RData,Saved spatial objects.
+SpatialCMR/TEModelRun.rds,04_model_outputs/01_saved_model_runs/temporary_emigration_model_run.rds,Saved temporary emigration model output.
+SpatialCMR/SpatialGridSetup.R,03_scripts/02_spatial_setup/01_create_spatial_grid_objects.R,Creates/loads spatial grid objects.
+SpatialCMR/SpatialPlotGrid.R,03_scripts/02_spatial_setup/02_plot_spatial_grid_and_setts.R,Plots spatial grid and sett locations.
+SpatialCMR/SG_Changes.R,03_scripts/02_spatial_setup/03_social_group_name_changes_checks.R,Social group name/change checks.
+SpatialCMR/Sim_CMR3stateCJS.R,03_scripts/03_early_multistate_models/05_simulated_3state_cjs_model.R,Simulated 3-state CJS prototype.
+SpatialCMR/TEModel_MS.R,03_scripts/04_temporary_emigration_models/01_temporary_emigration_multistate_model.R,Temporary emigration model.
+SpatialCMR/TestLogProb_EGBadger.R,03_scripts/05_ergon_gardner_spatial_cmr/development_and_debugging/01_test_log_probability_eg_badger_model.R,Log-probability/debugging script.
+SpatialCMR/EstimatedPrevalencePlot.R,03_scripts/07_plotting_and_animation/01_estimated_prevalence_plot.R,Estimated prevalence plotting script.
+SpatialCMR/bayes4edna_chp4.R,03_scripts/08_car_model_examples/02_bayes4edna_chapter4_example.R,External Bayesian spatial example; not central.
+SpatialCMR/CARModels/ScotlandLipCancerAnalysis.R,03_scripts/08_car_model_examples/01_scotland_lip_cancer_car_analysis.R,External CAR model example.
+SpatialCMR/EG_Models/Ergon_and_Gardner2013.R,03_scripts/05_ergon_gardner_spatial_cmr/baseline_and_reference/02_ergon_gardner_2013_reference_model.R,Reference Ergon & Gardner model.
+SpatialCMR/EG_Models/E&G_badgers.R,03_scripts/05_ergon_gardner_spatial_cmr/badger_baseline/01_first_badger_adaptation_of_ergon_gardner_model.R,First badger adaptation.
+SpatialCMR/EG_Models/EG_Badgers_NoCV.R,03_scripts/05_ergon_gardner_spatial_cmr/badger_baseline/02_badger_spatial_cmr_baseline_no_covariates.R,Baseline no-covariate badger model.
+SpatialCMR/EG_Models/EG_Badgers_Sex.R,03_scripts/05_ergon_gardner_spatial_cmr/sex_effects/01_badger_spatial_cmr_sex_effects.R,Sex-specific model.
+SpatialCMR/EG_Models/EG_Badgers_Inf.R,03_scripts/05_ergon_gardner_spatial_cmr/infection_group/01_badger_spatial_cmr_infection_group_initial.R,Initial infection group model.
+SpatialCMR/EG_Models/EG_Badgers_Inf_adjFirstS.R,03_scripts/05_ergon_gardner_spatial_cmr/infection_group/02_badger_spatial_cmr_infection_group_adjusted_first_location.R,Most advanced infection-group model candidate.
+SpatialCMR/EG_Models/EG_Badgers_CovariateDevelopment.R,03_scripts/05_ergon_gardner_spatial_cmr/development_and_debugging/02_badger_spatial_cmr_covariate_development.R,Covariate development.
+SpatialCMR/EG_Models/InitsForEGBadgers.R,03_scripts/05_ergon_gardner_spatial_cmr/development_and_debugging/03_initial_values_for_baseline_badger_model.R,Initial values for baseline model.
+SpatialCMR/EG_Models/InitsForEGBadgersSex.R,03_scripts/05_ergon_gardner_spatial_cmr/development_and_debugging/04_initial_values_for_sex_group_badger_model.R,Initial values for grouped model.
+SpatialCMR/SpatialCJS/SpatialCJS_CMRbadgers.R,03_scripts/06_spatial_cjs_prototypes/01_spatial_cjs_badgers_initial.R,Initial spatial CJS prototype.
+SpatialCMR/SpatialCJS/SpatialCJS_CMRbadgers_SG.R,03_scripts/06_spatial_cjs_prototypes/02_spatial_cjs_badgers_social_group.R,Social-group spatial CJS prototype.
+SpatialCMR/SpatialCJS/SpatialCJS_CMRbadgers_fl.R,03_scripts/06_spatial_cjs_prototypes/03_spatial_cjs_badgers_first_location.R,First-location spatial CJS prototype.
+SpatialCMR/SpatialCJS/SpatialCJS_CMRbadgers_fullSG.R,03_scripts/06_spatial_cjs_prototypes/04_spatial_cjs_badgers_full_social_group.R,Full social-group spatial CJS prototype.
+SpatialCMR/AnimationCode/MovmentAnimation.R,03_scripts/07_plotting_and_animation/02_movement_animation_baseline.R,Movement animation script; typo corrected in new name.
+SpatialCMR/AnimationCode/MovmentAnimation_inf.R,03_scripts/07_plotting_and_animation/03_movement_animation_infection_group.R,Infection-group movement animation script; typo corrected in new name.
+SpatialCMR/Movement_gifs/group_movement.gif,05_figures_and_animations/movement_gifs/group_movement.gif,Existing movement GIF output.
+SpatialCMR/Movement_gifs/individual_movement.gif,05_figures_and_animations/movement_gifs/individual_movement.gif,Existing movement GIF output.
+SpatialCMR/Movement_gifs/movement.gif,05_figures_and_animations/movement_gifs/movement.gif,Existing movement GIF output.
+SpatialCMR/Movement_gifs/movement_inf.gif,05_figures_and_animations/movement_gifs/movement_inf.gif,Existing movement GIF output.
+SpatialCMR/Movement_gifs/movement_infSadj.gif,05_figures_and_animations/movement_gifs/movement_infSadj.gif,Existing movement GIF output.
+SpatialCMR/Grid/GridShapeFile.shp,02_data/03_spatial_inputs/grid/GridShapeFile.shp,Grid shapefile component.
+SpatialCMR/Grid/GridShapeFile.dbf,02_data/03_spatial_inputs/grid/GridShapeFile.dbf,Grid shapefile component.
+SpatialCMR/Grid/GridShapeFile.cpg,02_data/03_spatial_inputs/grid/GridShapeFile.cpg,Grid shapefile component.
+SpatialCMR/Grid/GridShapeFile.prj,02_data/03_spatial_inputs/grid/GridShapeFile.prj,Grid shapefile component.
+SpatialCMR/Grid/GridShapeFile.qmd,02_data/03_spatial_inputs/grid/GridShapeFile.qmd,Grid shapefile component.
+SpatialCMR/Grid/GridShapeFile.shx,02_data/03_spatial_inputs/grid/GridShapeFile.shx,Grid shapefile component.
+SpatialCMR/SettGrid/SettGridLocationsR.cpg,02_data/03_spatial_inputs/sett_grid/SettGridLocationsR.cpg,Sett grid shapefile component.
+SpatialCMR/SettGrid/SettGridLocationsR.dbf,02_data/03_spatial_inputs/sett_grid/SettGridLocationsR.dbf,Sett grid shapefile component.
+SpatialCMR/SettGrid/SettGridLocationsR.prj,02_data/03_spatial_inputs/sett_grid/SettGridLocationsR.prj,Sett grid shapefile component.
+SpatialCMR/SettGrid/SettGridLocationsR.qmd,02_data/03_spatial_inputs/sett_grid/SettGridLocationsR.qmd,Sett grid shapefile component.
+SpatialCMR/SettGrid/SettGridLocationsR.shp,02_data/03_spatial_inputs/sett_grid/SettGridLocationsR.shp,Sett grid shapefile component.
+SpatialCMR/SettGrid/SettGridLocationsR.shx,02_data/03_spatial_inputs/sett_grid/SettGridLocationsR.shx,Sett grid shapefile component.
+SpatialCMR/SettLocations/SettLocationsShapeFile.shx,02_data/03_spatial_inputs/sett_locations/SettLocationsShapeFile.shx,Sett locations shapefile component.
+SpatialCMR/SettLocations/SettLocationsShapeFile.cpg,02_data/03_spatial_inputs/sett_locations/SettLocationsShapeFile.cpg,Sett locations shapefile component.
+SpatialCMR/SettLocations/SettLocationsShapeFile.dbf,02_data/03_spatial_inputs/sett_locations/SettLocationsShapeFile.dbf,Sett locations shapefile component.
+SpatialCMR/SettLocations/SettLocationsShapeFile.prj,02_data/03_spatial_inputs/sett_locations/SettLocationsShapeFile.prj,Sett locations shapefile component.
+SpatialCMR/SettLocations/SettLocationsShapeFile.qmd,02_data/03_spatial_inputs/sett_locations/SettLocationsShapeFile.qmd,Sett locations shapefile component.
+SpatialCMR/SettLocations/SettLocationsShapeFile.shp,02_data/03_spatial_inputs/sett_locations/SettLocationsShapeFile.shp,Sett locations shapefile component.
+SpatialCMR/StudyArea/StudyAreaShapeFile.shx,02_data/03_spatial_inputs/study_area/StudyAreaShapeFile.shx,Study area shapefile component.
+SpatialCMR/StudyArea/StudyAreaShapeFile.cpg,02_data/03_spatial_inputs/study_area/StudyAreaShapeFile.cpg,Study area shapefile component.
+SpatialCMR/StudyArea/StudyAreaShapeFile.dbf,02_data/03_spatial_inputs/study_area/StudyAreaShapeFile.dbf,Study area shapefile component.
+SpatialCMR/StudyArea/StudyAreaShapeFile.prj,02_data/03_spatial_inputs/study_area/StudyAreaShapeFile.prj,Study area shapefile component.
+SpatialCMR/StudyArea/StudyAreaShapeFile.qmd,02_data/03_spatial_inputs/study_area/StudyAreaShapeFile.qmd,Study area shapefile component.
+SpatialCMR/StudyArea/StudyAreaShapeFile.shp,02_data/03_spatial_inputs/study_area/StudyAreaShapeFile.shp,Study area shapefile component.
+SpatialCMR/CARModels/Data/.DS_Store,02_data/05_example_external_car_data/.DS_Store,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.csv,02_data/05_example_external_car_data/scotdistricts.csv,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.dbf,02_data/05_example_external_car_data/scotdistricts.dbf,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.geojson,02_data/05_example_external_car_data/scotdistricts.geojson,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.gpkg,02_data/05_example_external_car_data/scotdistricts.gpkg,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.mid,02_data/05_example_external_car_data/scotdistricts.mid,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.mif,02_data/05_example_external_car_data/scotdistricts.mif,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.shp,02_data/05_example_external_car_data/scotdistricts.shp,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.shx,02_data/05_example_external_car_data/scotdistricts.shx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.sqlite,02_data/05_example_external_car_data/scotdistricts.sqlite,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.txt,02_data/05_example_external_car_data/scotdistricts.txt,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotdistricts.xlsx,02_data/05_example_external_car_data/scotdistricts.xlsx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.csv,02_data/05_example_external_car_data/scotlip.csv,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.dbf,02_data/05_example_external_car_data/scotlip.dbf,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gpkg,02_data/05_example_external_car_data/scotlip.gpkg,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.mid,02_data/05_example_external_car_data/scotlip.mid,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.mif,02_data/05_example_external_car_data/scotlip.mif,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.shp,02_data/05_example_external_car_data/scotlip.shp,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.shx,02_data/05_example_external_car_data/scotlip.shx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.sqlite,02_data/05_example_external_car_data/scotlip.sqlite,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.xlsx,02_data/05_example_external_car_data/scotlip.xlsx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip_metadata.html,02_data/05_example_external_car_data/scotlip_metadata.html,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlipdata.dbf,02_data/05_example_external_car_data/scotlipdata.dbf,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlips.geojson,02_data/05_example_external_car_data/scotlips.geojson,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/style.css,02_data/05_example_external_car_data/style.css,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000001.gdbindexes,02_data/05_example_external_car_data/a00000001.gdbindexes,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000001.gdbtable,02_data/05_example_external_car_data/a00000001.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000001.gdbtablx,02_data/05_example_external_car_data/a00000001.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000001.TablesByName.atx,02_data/05_example_external_car_data/a00000001.TablesByName.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000002.gdbtable,02_data/05_example_external_car_data/a00000002.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000002.gdbtablx,02_data/05_example_external_car_data/a00000002.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000003.gdbindexes,02_data/05_example_external_car_data/a00000003.gdbindexes,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000003.gdbtable,02_data/05_example_external_car_data/a00000003.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000003.gdbtablx,02_data/05_example_external_car_data/a00000003.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000004.CatItemsByPhysicalName.atx,02_data/05_example_external_car_data/a00000004.CatItemsByPhysicalName.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000004.CatItemsByType.atx,02_data/05_example_external_car_data/a00000004.CatItemsByType.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000004.FDO_UUID.atx,02_data/05_example_external_car_data/a00000004.FDO_UUID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000004.gdbindexes,02_data/05_example_external_car_data/a00000004.gdbindexes,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000004.gdbtable,02_data/05_example_external_car_data/a00000004.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000004.gdbtablx,02_data/05_example_external_car_data/a00000004.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000004.spx,02_data/05_example_external_car_data/a00000004.spx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000005.CatItemTypesByName.atx,02_data/05_example_external_car_data/a00000005.CatItemTypesByName.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000005.CatItemTypesByParentTypeID.atx,02_data/05_example_external_car_data/a00000005.CatItemTypesByParentTypeID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000005.CatItemTypesByUUID.atx,02_data/05_example_external_car_data/a00000005.CatItemTypesByUUID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000005.gdbindexes,02_data/05_example_external_car_data/a00000005.gdbindexes,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000005.gdbtable,02_data/05_example_external_car_data/a00000005.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000005.gdbtablx,02_data/05_example_external_car_data/a00000005.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000006.CatRelsByDestinationID.atx,02_data/05_example_external_car_data/a00000006.CatRelsByDestinationID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000006.CatRelsByOriginID.atx,02_data/05_example_external_car_data/a00000006.CatRelsByOriginID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000006.CatRelsByType.atx,02_data/05_example_external_car_data/a00000006.CatRelsByType.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000006.FDO_UUID.atx,02_data/05_example_external_car_data/a00000006.FDO_UUID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000006.gdbindexes,02_data/05_example_external_car_data/a00000006.gdbindexes,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000006.gdbtable,02_data/05_example_external_car_data/a00000006.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000006.gdbtablx,02_data/05_example_external_car_data/a00000006.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.CatRelTypesByBackwardLabel.atx,02_data/05_example_external_car_data/a00000007.CatRelTypesByBackwardLabel.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.CatRelTypesByDestItemTypeID.atx,02_data/05_example_external_car_data/a00000007.CatRelTypesByDestItemTypeID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.CatRelTypesByForwardLabel.atx,02_data/05_example_external_car_data/a00000007.CatRelTypesByForwardLabel.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.CatRelTypesByName.atx,02_data/05_example_external_car_data/a00000007.CatRelTypesByName.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.CatRelTypesByOriginItemTypeID.atx,02_data/05_example_external_car_data/a00000007.CatRelTypesByOriginItemTypeID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.CatRelTypesByUUID.atx,02_data/05_example_external_car_data/a00000007.CatRelTypesByUUID.atx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.gdbindexes,02_data/05_example_external_car_data/a00000007.gdbindexes,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.gdbtable,02_data/05_example_external_car_data/a00000007.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000007.gdbtablx,02_data/05_example_external_car_data/a00000007.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000009.gdbindexes,02_data/05_example_external_car_data/a00000009.gdbindexes,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000009.gdbtable,02_data/05_example_external_car_data/a00000009.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000009.gdbtablx,02_data/05_example_external_car_data/a00000009.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a00000009.spx,02_data/05_example_external_car_data/a00000009.spx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a0000000a.gdbindexes,02_data/05_example_external_car_data/a0000000a.gdbindexes,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a0000000a.gdbtable,02_data/05_example_external_car_data/a0000000a.gdbtable,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a0000000a.gdbtablx,02_data/05_example_external_car_data/a0000000a.gdbtablx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/a0000000a.spx,02_data/05_example_external_car_data/a0000000a.spx,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/gdb,02_data/05_example_external_car_data/gdb,External CAR/lip cancer example data.
+SpatialCMR/CARModels/Data/scotlip.gdb/timestamps,02_data/05_example_external_car_data/timestamps,External CAR/lip cancer example data.
