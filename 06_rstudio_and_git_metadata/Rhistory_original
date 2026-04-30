@@ -1,0 +1,512 @@
+library(nimble)
+library(lubridate)
+library(tidyverse)
+library(coda)
+run <- readRDS("EG_Badgers_SexOut.rds")
+plot(run$samples, params)
+plot(run$samples, params= c("phi", "kappa", "sigma", "PL", "dmean"))
+plot(run$samples, params= c("phi", "kappa", "sigma", "PL", "dmean"))
+plot(run$samples, params= c("dmean"))
+install.packages("~/NewBadgers/SpatialCMR/mcmcplots_0.4.3.tar.gz", repos = NULL, type = "source")
+install.packages("denstrip")
+install.packages("~/NewBadgers/SpatialCMR/denstrip_1.5.4.tar.gz", repos = NULL, type = "source")
+install.packages("~/NewBadgers/SpatialCMR/mcmcplots_0.4.3.tar.gz", repos = NULL, type = "source")
+mcmcplot(run$samples, parms = c("kappa", "sigma", "PL", "dmean"))
+library(mcmcplots)
+mcmcplot(run$samples, parms = c("kappa", "sigma", "PL", "dmean"))
+dM_samples <- run$samples
+dM_samples <- as.data.frame(as.matrix(run$samples))
+dM_samples <- as.data.frame(as.matrix(run$samples)) %>%
+select(starts_with("dmean"))
+dM_samples <- as.data.frame(as.matrix(run$samples)) %>%
+select(starts_with("dmean")) %>%
+pivot_longer(names_to = "Inf", values_to = "Estimate")
+dM_samples <- as.data.frame(as.matrix(run$samples)) %>%
+select(starts_with("dmean")) %>%
+pivot_longer(cols = c(1, 2), names_to = "Inf", values_to = "Estimate")
+dM_samples <- as.data.frame(as.matrix(run$samples)) %>%
+select(starts_with("dmean")) %>%
+pivot_longer(cols = c(1, 2), names_to = "Infection", values_to = "Estimate")
+ggplot(dM_samples, aes(x = Infection, y = Estimate, colour = as.factor(Infection))) +
+geom_density()
+ggplot(dM_samples, aes(y = Estimate, colour = as.factor(Infection))) +
+geom_density()
+ggplot(dM_samples, aes(x = Estimate, colour = as.factor(Infection))) +
+geom_density()
+run <- readRDS("EG_Badgers_SexOut.rds")
+library(mcmcplots)
+library(sf)
+library(nimble)
+library(lubridate)
+library(tidyverse)
+library(coda)
+dM_samples <- as.data.frame(as.matrix(run$samples)) %>%
+select(starts_with("dmean")) %>%
+pivot_longer(cols = c(1, 2), names_to = "Infection", values_to = "Estimate")
+ggplot(dM_samples, aes(x = Estimate, colour = as.factor(Infection))) +
+geom_density()
+# Rename the groups for clarity
+dM_samples$Infection <- factor(dM_samples$Infection,
+levels = c("dmean[1]", "dmean[2]"), # Assuming these are your original column names
+labels = c("Never positive", "Test-positive as cub"))
+ggplot(dM_samples, aes(x = Estimate, fill = Infection)) +
+geom_density(alpha = 0.7) + # Transparency to show overlapping densities
+labs(x = "Estimated Dispersal Mean", y = "Density", fill = "Badger Status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "top"            # Optional: position legend on top
+) +
+scale_fill_manual(values = c("blue", "red")) # Optional: custom colors for the groups
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", fill = "Badger Status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right"            # Optional: position legend on top
+)
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", fill = "Badger Status") +
+theme_classic()   # Clear background, focus on axes
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density") +
+theme_classic()   # Clear background, focus on axes
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic()   # Clear background, focus on axes
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right"            # Optional: position legend on top
+) +
+cale_y_continuous(expand = expansion(mult = c(0, 0.05))) # Ensure x-axis is positioned at y=0
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right"            # Optional: position legend on top
+) +
+scale_y_continuous(expand = expansion(mult = c(0, 0.05))) # Ensure x-axis is positioned at y=0
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right"            # Optional: position legend on top
+) +
+scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+xlim(0, 2)
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right"            # Optional: position legend on top
+) +
+scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+xlim(0, 1.5)
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right"            # Optional: position legend on top
+) +
+scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+xlim(0, 1.5) +
+ylim(0, 8)
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right"            # Optional: position legend on top
+) +
+scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right"            # Optional: position legend on top
+text = element_text(size = 15)
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right" ,           # Optional: position legend on top
+text = element_text(size = 15)
+) +
+scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+ggplot(dM_samples, aes(x = Estimate, colour = Infection, fill = Infection)) +
+geom_density(alpha = 0.3) + # Transparency to show overlapping densities
+labs(x = "Estimate", y = "Density", colour = "Badger status", fill = "Badger status") +
+theme_classic() +  # Clear background, focus on axes
+theme(
+panel.grid = element_blank(),      # Remove grid lines
+axis.line = element_line(),        # Emphasize axis lines
+legend.title = element_text(face = "bold"), # Make the legend title bold
+legend.position = "right" ,           # Optional: position legend on top
+text = element_text(size = 17)
+) +
+scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+library(sf)
+library(sp)
+library(raster)
+library(tidyverse)
+# Read the full grid and selected grid shapefiles
+grid <- st_read("Grid/GridShapeFile.shp")
+studyArea <- st_read("StudyArea/StudyAreaShapeFile.shp")
+settLocations <- st_read("SettLocations/SettLocationsShapeFile.shp")
+# Load and preprocess data
+bc <- readRDS("../BadgersSG2024.rds") %>%
+droplevels()
+library(sf)
+library(nimble)
+library(lubridate)
+library(tidyverse)
+library(coda)
+# Load and preprocess data
+bc <- readRDS("../BadgersSG2024.rds") %>%
+droplevels()
+View(bc)
+bc <- select(bc, c(1:19))
+# Load and preprocess data
+bc <- readRDS("../BadgersSG2024.rds") %>%
+droplevels()
+bc <- select(bc, c(1:19))
+saveRDS(bc, "bc_Cole.rds")
+library(openxlsx)
+# Assume your data is in a dataframe called 'my_data'
+write.xlsx(bc, file = "bc_Cole.xlsx")
+library(writexl)
+# Write to Excel
+write_xlsx(bc, "bc_Cole.xlsx")
+# Write to Excel
+write_xlsx(bc, "bc_Cole.xlsx")
+# Load and preprocess data
+bc <- readRDS("../BadgersSG2024.rds") %>%
+droplevels()
+bc <- select(bc, c(1:19)) %>%
+ungroup()
+saveRDS(bc, "bc_Cole.rds")
+library(openxlsx)
+# Assume your data is in a dataframe called 'my_data'
+write.xlsx(bc, file = "bc_Cole.xlsx")
+library(writexl)
+# Write to Excel
+write_xlsx(bc, "bc_Cole.xlsx")
+bc <- data.frame(lapply(bc, function(x) {
+if (is.character(x)) {
+iconv(x, to = "UTF-8")
+} else {
+x
+}
+}))
+# Assume your data is in a dataframe called 'my_data'
+write.xlsx(bc, file = "bc_Cole.xlsx")
+#####################################################################################################
+#####################################################################################################
+#############################################################################
+#############################################################################
+#############################################################################
+###                                                                       ###
+###                   IUCN data Analysis 2024: Model 2                    ###
+###                                                                       ###
+#############################################################################
+#############################################################################
+#############################################################################
+#####################################################################################################
+#####################################################################################################
+##########################
+##########################
+# remove any old variables from the workspace
+#rm(list=ls())
+# Check by listing if any variables still in the workspace
+#ls()
+#########################
+# Required packages
+library(phytools)
+library(MCMCglmm)
+library(phangorn)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(parallel)
+options(max.print=1000000)
+# setwd("C:/Users/fraserbell/OneDrive - THE ROYAL SOCIETY FOR THE PROTECTION OF BIRDS/PhD Manuscripts/Chap 1/2024")
+# First dataset
+data<- read.csv("IUCN_data_B.csv", header=T, na.strings="", stringsAsFactors = FALSE)
+setwd("~/NewBadgers/SpatialCMR")
+#####################################################################################################
+#####################################################################################################
+#############################################################################
+#############################################################################
+#############################################################################
+###                                                                       ###
+###                   IUCN data Analysis 2024: Model 2                    ###
+###                                                                       ###
+#############################################################################
+#############################################################################
+#############################################################################
+#####################################################################################################
+#####################################################################################################
+##########################
+##########################
+# remove any old variables from the workspace
+#rm(list=ls())
+# Check by listing if any variables still in the workspace
+#ls()
+#########################
+# Required packages
+library(phytools)
+library(MCMCglmm)
+library(phangorn)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(parallel)
+options(max.print=1000000)
+# setwd("C:/Users/fraserbell/OneDrive - THE ROYAL SOCIETY FOR THE PROTECTION OF BIRDS/PhD Manuscripts/Chap 1/2024")
+# First dataset
+data<- read.csv("IUCN_data_B.csv", header=T, na.strings="", stringsAsFactors = FALSE)
+setwd("~/FraserCode")
+#####################################################################################################
+#####################################################################################################
+#############################################################################
+#############################################################################
+#############################################################################
+###                                                                       ###
+###                   IUCN data Analysis 2024: Model 2                    ###
+###                                                                       ###
+#############################################################################
+#############################################################################
+#############################################################################
+#####################################################################################################
+#####################################################################################################
+##########################
+##########################
+# remove any old variables from the workspace
+#rm(list=ls())
+# Check by listing if any variables still in the workspace
+#ls()
+#########################
+# Required packages
+library(phytools)
+library(MCMCglmm)
+library(phangorn)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(parallel)
+options(max.print=1000000)
+# setwd("C:/Users/fraserbell/OneDrive - THE ROYAL SOCIETY FOR THE PROTECTION OF BIRDS/PhD Manuscripts/Chap 1/2024")
+# First dataset
+data<- read.csv("IUCN_data_B.csv", header=T, na.strings="", stringsAsFactors = FALSE)
+# Other datasets:
+# data<- read.csv("IUCN_data_C.csv", header=T, na.strings="", stringsAsFactors = FALSE)
+####
+#### Prepare data
+####
+# Sort data structure - turn fixed effects into factors (from integers)
+fixedEffects <- c("decline", "migratory", "Hemisphere","Artificial", "Forest","Grassland", "Savanna",
+"Shrubland", "Wetlands", "American", "AfroPal", "Asian")
+data[fixedEffects] <- lapply(data[fixedEffects], factor)
+data$EOO <- as.numeric(data$EOO)
+# check
+str(data)
+# Apply log transformation (add 1 to avoid log(0) if necessary)
+data$EOO_log <- log(data$EOO + 1)
+# Center the log-transformed EOO variable
+data$EOO_log_centered <- scale(data$EOO_log, center = TRUE, scale = FALSE)
+####
+#### Re-level factors to sort intercept issue
+####
+# Re-leveling to use 'South American forest specialists'
+data$migratory<-relevel(data$migratory, ref='0')
+data$Forest<-relevel(data$Forest, ref='1')
+data$American<-relevel(data$American, ref='1')
+data$Hemisphere<-relevel(data$Hemisphere, ref='2')
+####
+#### Phylogeny
+####
+### Load and sort phylogenetic tree
+tree <- read.tree("ult_5k_tree.trees")
+# Check if tree is ultrametric
+is.ultrametric(tree)
+tree$edge.length[tree$edge.length <=0]<-0
+tree<-di2multi(tree)
+####
+#### MCMCglmm
+####
+###
+### Model 1: decline ~ migratory * flyway * hemisphere * habitat * EOO
+###
+MCMC_3 <- MCMCglmm(decline ~ migratory*Hemisphere +
+migratory*EOO_log_centered,
+data=data, family = "categorical",
+random=~animal, ginverse=list(animal=inverseA(tree)$Ainv),
+prior=list(R=list(V=1, fix=1),
+G=list(G1=list(V=1, nu=1000, alpha.mu=0, alpha.V=1))),
+pl=TRUE, nitt=5000000,thin=100,burnin=1000, verbose =TRUE)
+summary.MCMCglmm(MCMC_3)
+##
+## Save model outputs
+##
+# Export R workspace
+save(MCMC_3, file = "MCMC_3.Rdata")
+# Export model as object
+saveRDS(MCMC_3, "MCMC_3.rds")
+# Export plots
+#dev.off()
+par(mfrow=c(8,2), mar=c(2,2,1,0))
+pdf(file = "MCMC_3.pdf")
+plot(MCMC_2$Sol, auto.layout=F)
+dev.off()
+# Export plots
+#dev.off()
+par(mfrow=c(8,2), mar=c(2,2,1,0))
+pdf(file = "MCMC_3.pdf")
+plot(MCMC_3$Sol, auto.layout=F)
+dev.off()
+clean.MCMC <- function(x) {
+sols <- summary(x)$solutions  ## pull out relevant info from model summary
+Gcovs <- summary(x)$Gcovariances
+Rcovs <- summary(x)$Rcovariances
+fixed <- data.frame(row.names(sols), sols, row.names = NULL)  ## convert to dataframes with the row.names as the first col
+random <- data.frame(row.names(Gcovs), Gcovs, row.names = NULL)
+residual <- data.frame(row.names(Rcovs), Rcovs, row.names = NULL)
+names(fixed)[names(fixed) == "row.names.sols."] <- "variable"  ## change the columns names to variable, so they all match
+names(random)[names(random) == "row.names.Gcovs."] <- "variable"
+names(residual)[names(residual) == "row.names.Rcovs."] <- "variable"
+fixed$effect <- "fixed"  ## add ID column for type of effect (fixed, random, residual)
+random$effect <- "random"
+residual$effect <- "residual"
+modelTerms <- as.data.frame(bind_rows(fixed, random, residual))  # merge it all together
+}
+getName.MCMC <- function(x) deparse(substitute(x))  # add the model name
+oneModel <- clean.MCMC(MCMC_3)  # get all the info from summary(modelName)
+oneModel$modelName <- getName.MCMC(MCMC_3)  # add the model's name in a new column
+oneModel  # check out the created dataframe
+dataList <- list(MCMC_3)
+dataListNames <- list("MCMC_3")
+readyList <- mapply(cbind, lapply(dataList, clean.MCMC), "modelName" = dataListNames, SIMPLIFY = F)
+mcmcOutputs <- as.data.frame(do.call(rbind, readyList), stringsAsFactors = FALSE)
+write.csv (mcmcOutputs, "MCMC_3.csv")
+# Load the necessary libraries
+library(coda)
+library(ggplot2)
+# Load the posterior samples from the MCMCglmm model
+posterior_samples <- readRDS("MCMC_3.rds")  # Assuming you saved the model output
+posterior_samples <- as.matrix(posterior_samples$Sol)
+# Function to calculate the individual effect for a given factor, accounting for interactions
+calculate_individual_effect <- function(samples, factor, interactions = NULL) {
+# Intercept for each sample
+effect <- samples[, "(Intercept)"]
+# Add the main effect for the factor
+if (factor %in% colnames(samples)) {
+effect <- effect + samples[, factor]
+}
+# Add any interaction terms involving this factor
+if (!is.null(interactions)) {
+for (interaction in interactions) {
+if (interaction %in% colnames(samples)) {
+effect <- effect + samples[, interaction]
+}
+}
+}
+return(effect)
+}
+factors <- list(
+EOO_Hem1_nonMigratory = list("EOO_log_centered", c("Hemisphere1")),
+EOO_Hem1_Migratory = list("EOO_log_centered", c("Hemisphere1", "migratory1",
+"migratory1:EOO_log_centered", "migratory1:Hemisphere1"))
+)
+# Initialize a data frame to store the results
+effects_summary <- data.frame()
+# Loop through each factor and calculate the individual effect sizes
+for (factor in names(factors)) {
+main_effect <- factors[[factor]][[1]]
+interaction_terms <- factors[[factor]][[2]]
+# Calculate the individual effect for this factor
+individual_effect <- calculate_individual_effect(posterior_samples, main_effect, interaction_terms)
+# Summarize the effect (mean and credible intervals)
+mean_effect <- mean(individual_effect)
+lower_ci <- quantile(individual_effect, 0.025)
+upper_ci <- quantile(individual_effect, 0.975)
+# Store the results in a data frame
+effects_summary <- rbind(effects_summary, data.frame(
+Factor = factor,
+Mean = mean_effect,
+`Lower 95% CI` = lower_ci,
+`Upper 95% CI` = upper_ci
+))
+}
+rownames(effects_summary) <- NULL
+print(effects_summary)
+# Function to plot the histogram/density plot with CIs for a given effect
+plot_effect_distribution <- function(effect_values, effect_name) {
+effect_df <- data.frame(Effect = effect_values)
+# Calculate the 95% credible intervals
+lower_ci <- quantile(effect_values, 0.025)
+upper_ci <- quantile(effect_values, 0.975)
+# Create the plot: Histogram with density curve and CIs
+ggplot(effect_df, aes(x = Effect)) +
+geom_histogram(aes(y = ..density..), binwidth = 0.05, fill = "lightblue", color = "black", alpha = 0.7) +
+geom_density(color = "blue", size = 1) +
+geom_vline(aes(xintercept = lower_ci), linetype = "dashed", color = "red", size = 1) +
+geom_vline(aes(xintercept = upper_ci), linetype = "dashed", color = "red", size = 1) +
+theme_bw() +
+labs(title = paste("Distribution of the Effect of", effect_name),
+x = "Effect Size",
+y = "Density") +
+annotate("text", x = lower_ci, y = 0.05, label = paste("2.5% CI:", round(lower_ci, 3)), hjust = 1.1, color = "red") +
+annotate("text", x = upper_ci, y = 0.05, label = paste("97.5% CI:", round(upper_ci, 3)), hjust = -0.1, color = "red")
+}
+dev.off()
+# Save the individual effect plots to a PDF
+pdf("individualEffect_MCMC3.pdf")
+# Iterate through each factor
+for (factor in names(factors)) {
+main_effect <- factors[[factor]][[1]]
+interaction_terms <- factors[[factor]][[2]]
+individual_effect <- calculate_individual_effect(posterior_samples, main_effect, interaction_terms)
+print(plot_effect_distribution(individual_effect, factor))
+}
+dev.off()
