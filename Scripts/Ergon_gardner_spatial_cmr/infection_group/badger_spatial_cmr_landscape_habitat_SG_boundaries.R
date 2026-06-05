@@ -69,7 +69,7 @@ library(nimble)
 library(lubridate)
 library(tidyverse)
 library(coda)
-library(mcmcplots)
+#library(mcmcplots)
 
 
 # ---- 2. Helper functions ----------------------------------------------------
@@ -458,31 +458,431 @@ if (!is.na(SAMPLE_N)) {
   )
 }
 
-
 # ---- 5. Spatial data preparation -------------------------------------------
 
+load(spatial_object_path)
+
+# ---- 5. Spatial data preparation using NEW habitat/SG grid ------------------
+#
+# Important distinction:
+#
+#   capture_loc_id / capture_loc_num = observation-model capture location
+#                                     = cleaned socg, because settGrid only has
+#                                       the coarser 23-ish spatial locations.
+#
+#   sett_id = cleaned exact sett/location name from bc$sett.
+#             Kept as a diagnostic/descriptive column, but NOT used for X/H.
+#
+#   SG_id / SG_mat = landscape social-group territory ID from the new GIS layer.
+#
+#   habitat_mat = 1 land, 0 lake.
+#
+# The old settGrid geometry is reused, but its old row_index/col_index values
+# are discarded and rebuilt from the new habitat/SG grid.
+
+
+# ---- 5a. Preserve original capture-location spatial object ------------------
+
+if (!exists("settGrid")) {
+  stop("Object `settGrid` was not found after loading spatial_object_path.")
+}
+
+if (!inherits(settGrid, "sf")) {
+  stop(
+    "`settGrid` is not an sf object. ",
+    "You need the original capture-location geometry to rebuild indices.",
+    call. = FALSE
+  )
+}
+
+settGrid_old_sf <- settGrid
+
+
+# ---- 5b. Clean IDs in the capture data --------------------------------------
+
 bc <- bc %>%
   mutate(
-    SG = iconv(socg, from = "latin1", to = "UTF-8", sub = ""),
-    SG = gsub(" ", "", SG)
+    # This is the spatial capture-location ID used by the model.
+    # It should match the old settGrid$Sett values.
+    capture_loc_id = iconv(socg, from = "latin1", to = "UTF-8", sub = ""),
+    capture_loc_id = gsub(" ", "", capture_loc_id),
+    
+    # Exact sett/location name. Keep for diagnostics only.
+    sett_id = iconv(sett, from = "latin1", to = "UTF-8", sub = ""),
+    sett_id = gsub(" ", "", sett_id)
   )
 
-settGrid <- settGrid %>%
-  st_drop_geometry() %>%
-  rename(SG = Sett)
 
-stop_if_missing_cols(settGrid, c("SG", "row_index", "col_index"), "settGrid")
+# ---- 5c. Read the NEW final habitat/SG grid ---------------------------------
 
-if (exists("studyArea")) rm(studyArea)
+new_grid_path <- file.path(
+  project_root,
+  "02_data/03_spatial_inputs/Hetro_habitat_SGs/Habitat_Final.shp"
+)
 
-SGs_all <- settGrid$SG
+if (!file.exists(new_grid_path)) {
+  stop(
+    "Cannot find new grid shapefile at:\n",
+    new_grid_path,
+    "\nCheck the path and file name.",
+    call. = FALSE
+  )
+}
+
+new_grid <- sf::st_read(new_grid_path, quiet = FALSE)
+
+
+# ---- 5d. Standardise/check new grid columns ---------------------------------
+
+# The final grid must contain:
+#   SG_id   = integer territory/buffer ID
+#   habitat = 1 land, 0 lake
+
+if (!"SG_id" %in% names(new_grid) && "SG_ID" %in% names(new_grid)) {
+  new_grid <- new_grid %>% rename(SG_id = SG_ID)
+}
+
+if (!"SG_id" %in% names(new_grid) && "sg_id" %in% names(new_grid)) {
+  new_grid <- new_grid %>% rename(SG_id = sg_id)
+}
+
+if (!"habitat" %in% names(new_grid) && "Habitat" %in% names(new_grid)) {
+  new_grid <- new_grid %>% rename(habitat = Habitat)
+}
+
+required_grid_cols <- c("SG_id", "habitat")
+missing_grid_cols <- setdiff(required_grid_cols, names(new_grid))
+
+if (length(missing_grid_cols) > 0) {
+  stop(
+    "The new grid is missing required columns: ",
+    paste(missing_grid_cols, collapse = ", "),
+    call. = FALSE
+  )
+}
+
+new_grid <- new_grid %>%
+  mutate(
+    SG_id = as.integer(SG_id),
+    habitat = as.integer(habitat)
+  )
+
+if (anyNA(new_grid$SG_id)) {
+  stop("new_grid$SG_id contains NA values. Fix this before modelling.")
+}
+
+if (anyNA(new_grid$habitat)) {
+  stop("new_grid$habitat contains NA values. Fix this before modelling.")
+}
+
+if (!all(sort(unique(new_grid$habitat)) %in% c(0L, 1L))) {
+  stop("new_grid$habitat must contain only 0 = lake and 1 = land.")
+}
+
+
+# ---- 5e. Check CRS consistency ----------------------------------------------
+
+if (is.na(sf::st_crs(settGrid_old_sf))) {
+  stop("settGrid has no CRS. Assign/check CRS before continuing.")
+}
+
+if (is.na(sf::st_crs(new_grid))) {
+  stop("new_grid has no CRS. Assign/check CRS before continuing.")
+}
+
+if (sf::st_crs(settGrid_old_sf) != sf::st_crs(new_grid)) {
+  message("Transforming settGrid to match new_grid CRS.")
+  settGrid_old_sf <- sf::st_transform(settGrid_old_sf, sf::st_crs(new_grid))
+}
+
+
+# ---- 5f. Recreate row/column indices for the NEW grid -----------------------
+
+# IMPORTANT: this must match the cell size used in QGIS.
+cell_size <- 25L
+
+new_grid_cent <- sf::st_centroid(new_grid)
+grid_coords <- sf::st_coordinates(new_grid_cent)
+
+bb <- sf::st_bbox(new_grid)
+
+xmin <- as.numeric(bb["xmin"])
+xmax <- as.numeric(bb["xmax"])
+ymin <- as.numeric(bb["ymin"])
+ymax <- as.numeric(bb["ymax"])
+
+new_grid <- new_grid %>%
+  mutate(
+    grid_x = grid_coords[, 1],
+    grid_y = grid_coords[, 2],
+    col_index = as.integer(floor((grid_x - xmin) / cell_size)) + 1L,
+    row_index = as.integer(floor((ymax - grid_y) / cell_size)) + 1L
+  )
+
+n_rows <- max(new_grid$row_index, na.rm = TRUE)
+n_cols <- max(new_grid$col_index, na.rm = TRUE)
+
+cat("\nNew grid dimensions:\n")
+cat("  n_rows:           ", n_rows, "\n")
+cat("  n_cols:           ", n_cols, "\n")
+cat("  n cells expected: ", n_rows * n_cols, "\n")
+cat("  n rows in grid:   ", nrow(new_grid), "\n")
+
+if (n_rows * n_cols != nrow(new_grid)) {
+  warning(
+    "n_rows * n_cols does not equal nrow(new_grid). ",
+    "This suggests the grid may not be a complete rectangle. ",
+    "For this matrix lookup approach, a complete rectangular grid is strongly preferred."
+  )
+}
+
+
+# ---- 5g. Build habitat and SG matrices from the NEW grid --------------------
+
+habitat_mat <- matrix(NA_integer_, nrow = n_rows, ncol = n_cols)
+SG_mat      <- matrix(NA_integer_, nrow = n_rows, ncol = n_cols)
+
+habitat_mat[cbind(new_grid$row_index, new_grid$col_index)] <-
+  as.integer(new_grid$habitat)
+
+SG_mat[cbind(new_grid$row_index, new_grid$col_index)] <-
+  as.integer(new_grid$SG_id)
+
+if (anyNA(habitat_mat)) {
+  stop(
+    "habitat_mat contains NA values. ",
+    "This usually means the exported grid is not a complete rectangle, ",
+    "or row/column indexing is inconsistent.",
+    call. = FALSE
+  )
+}
+
+if (anyNA(SG_mat)) {
+  stop(
+    "SG_mat contains NA values. ",
+    "Every grid cell must have an SG_id, including the buffer.",
+    call. = FALSE
+  )
+}
+
+cat("\nHabitat matrix check:\n")
+print(table(as.vector(habitat_mat), useNA = "ifany"))
+
+cat("\nSG matrix check:\n")
+print(table(as.vector(SG_mat), useNA = "ifany"))
+
+
+# ---- 5h. Standardise old settGrid capture-location IDs ----------------------
+
+settGrid_old_tab <- settGrid_old_sf %>%
+  sf::st_drop_geometry()
+
+if (!"Sett" %in% names(settGrid_old_tab) && !"capture_loc_id" %in% names(settGrid_old_tab)) {
+  stop(
+    "settGrid does not contain a `Sett` or `capture_loc_id` column. ",
+    "Need a capture-location ID to match cleaned bc$socg.",
+    call. = FALSE
+  )
+}
+
+if ("Sett" %in% names(settGrid_old_sf) && !"capture_loc_id" %in% names(settGrid_old_sf)) {
+  settGrid_old_sf <- settGrid_old_sf %>%
+    rename(capture_loc_id = Sett)
+}
+
+settGrid_old_sf <- settGrid_old_sf %>%
+  mutate(
+    capture_loc_id = iconv(capture_loc_id, from = "latin1", to = "UTF-8", sub = ""),
+    capture_loc_id = gsub(" ", "", capture_loc_id)
+  )
+
+
+# ---- 5i. Check capture-location matching ------------------------------------
+
+bc_capture_ids <- sort(unique(bc$capture_loc_id))
+
+grid_capture_ids <- settGrid_old_sf %>%
+  sf::st_drop_geometry() %>%
+  distinct(capture_loc_id) %>%
+  pull(capture_loc_id) %>%
+  sort()
+
+cat("\nCapture-location ID match check:\n")
+cat("  unique bc$capture_loc_id:       ", length(bc_capture_ids), "\n")
+cat("  unique settGrid$capture_loc_id: ", length(grid_capture_ids), "\n")
+cat("  bc capture IDs matching settGrid: ",
+    sum(bc_capture_ids %in% grid_capture_ids), "\n")
+
+unmatched_bc_capture_locs <- setdiff(bc_capture_ids, grid_capture_ids)
+
+if (length(unmatched_bc_capture_locs) > 0) {
+  warning(
+    length(unmatched_bc_capture_locs),
+    " capture_loc_id values are not present in settGrid. First examples:\n",
+    paste(head(unmatched_bc_capture_locs, 20), collapse = ", ")
+  )
+}
+
+# Optional diagnostic showing why exact sett names are not used for spatial X/H.
+bc_sett_ids <- sort(unique(bc$sett_id))
+
+cat("\nExact sett-name diagnostic only:\n")
+cat("  unique bc$sett_id values: ", length(bc_sett_ids), "\n")
+cat("  These are not used as model detection locations unless you have a full sett-point layer.\n")
+
+
+# ---- 5j. Assign every capture location to the NEW grid ----------------------
+#
+# Use nearest grid cell rather than st_within because points can sometimes sit
+# exactly on cell boundaries.
+
+nearest_cell <- sf::st_nearest_feature(settGrid_old_sf, new_grid)
+
+settGrid_new_sf <- settGrid_old_sf %>%
+  mutate(
+    row_index = new_grid$row_index[nearest_cell],
+    col_index = new_grid$col_index[nearest_cell],
+    SG_id_landscape = new_grid$SG_id[nearest_cell],
+    habitat = new_grid$habitat[nearest_cell]
+  )
+
+sett_distance_to_cell <- as.numeric(
+  sf::st_distance(
+    sf::st_geometry(settGrid_old_sf),
+    sf::st_geometry(new_grid[nearest_cell, ]),
+    by_element = TRUE
+  )
+)
+
+cat("\nDistance from capture-location points to assigned grid cells:\n")
+print(summary(sett_distance_to_cell))
+
+if (max(sett_distance_to_cell, na.rm = TRUE) > cell_size) {
+  warning(
+    "Some capture-location points are more than one cell size away from their assigned grid cell. ",
+    "This suggests some points may fall outside the new state-space."
+  )
+}
+
+settGrid <- settGrid_new_sf %>%
+  sf::st_drop_geometry() %>%
+  mutate(
+    row_index = as.integer(row_index),
+    col_index = as.integer(col_index),
+    SG_id_landscape = as.integer(SG_id_landscape),
+    habitat = as.integer(habitat)
+  )
+
+dup_check <- settGrid %>%
+  count(capture_loc_id) %>%
+  filter(n > 1)
+
+if (nrow(dup_check) > 0) {
+  coord_dup_check <- settGrid %>%
+    group_by(capture_loc_id) %>%
+    summarise(
+      n_rows = n(),
+      n_unique_cells = n_distinct(paste(row_index, col_index)),
+      .groups = "drop"
+    ) %>%
+    filter(n_unique_cells > 1)
+  
+  if (nrow(coord_dup_check) > 0) {
+    print(coord_dup_check)
+    stop(
+      "Some capture_loc_id values occur multiple times with different grid cells. ",
+      "Resolve duplicate capture-location IDs before modelling.",
+      call. = FALSE
+    )
+  }
+  
+  settGrid <- settGrid %>%
+    distinct(capture_loc_id, .keep_all = TRUE)
+}
+
+stop_if_missing_cols(
+  settGrid,
+  c("capture_loc_id", "row_index", "col_index"),
+  "settGrid"
+)
+
+
+# ---- 5k. Check rebuilt capture-location indices -----------------------------
+
+if (anyNA(settGrid$row_index)) {
+  stop("Some settGrid$row_index values are NA after assigning to the new grid.")
+}
+
+if (anyNA(settGrid$col_index)) {
+  stop("Some settGrid$col_index values are NA after assigning to the new grid.")
+}
+
+if (any(settGrid$row_index < 1L | settGrid$row_index > n_rows)) {
+  stop("Some settGrid$row_index values fall outside the new matrix.")
+}
+
+if (any(settGrid$col_index < 1L | settGrid$col_index > n_cols)) {
+  stop("Some settGrid$col_index values fall outside the new matrix.")
+}
+
+capture_loc_habitat_check <- habitat_mat[cbind(settGrid$row_index, settGrid$col_index)]
+capture_loc_SG_check      <- SG_mat[cbind(settGrid$row_index, settGrid$col_index)]
+
+cat("\nCapture-location habitat check, from matrix:\n")
+print(table(capture_loc_habitat_check, useNA = "ifany"))
+
+cat("\nCapture-location SG territory check, from matrix:\n")
+print(table(capture_loc_SG_check, useNA = "ifany"))
+
+if (any(capture_loc_habitat_check == 0L, na.rm = TRUE)) {
+  warning(
+    "Some capture locations fall in cells classified as lake. ",
+    "Check lake polygons, grid resolution, and nearest-cell assignment."
+  )
+}
+
+
+# ---- 5l. Save consistent spatial inputs -------------------------------------
+
+consistent_spatial_inputs_path <- file.path(
+  project_root,
+  "02_data/04_saved_spatial_objects/consistent_new_grid_spatial_inputs.rds"
+)
+
+saveRDS(
+  list(
+    new_grid = new_grid,
+    settGrid = settGrid,
+    habitat_mat = habitat_mat,
+    SG_mat = SG_mat,
+    xmin = xmin,
+    xmax = xmax,
+    ymin = ymin,
+    ymax = ymax,
+    cell_size = cell_size,
+    n_rows = n_rows,
+    n_cols = n_cols
+  ),
+  consistent_spatial_inputs_path
+)
+
+message("Saved consistent spatial inputs to: ", consistent_spatial_inputs_path)
+
+
+# ---- 5m. Join updated capture-location indices onto capture data ------------
+
+capture_locs_all <- settGrid$capture_loc_id
 
 bc <- bc %>%
-  filter(SG %in% SGs_all) %>%
-  left_join(settGrid, by = "SG") %>%
+  filter(capture_loc_id %in% capture_locs_all) %>%
+  left_join(
+    settGrid %>%
+      dplyr::select(capture_loc_id, row_index, col_index, SG_id_landscape, habitat),
+    by = "capture_loc_id"
+  ) %>%
   mutate(
-    date = ymd(date),
-    primary_year = year(date)
+    date = lubridate::ymd(date),
+    primary_year = lubridate::year(date)
   ) %>%
   filter(primary_year > 1981) %>%
   arrange(date) %>%
@@ -490,15 +890,19 @@ bc <- bc %>%
     primary = factor(primary_year, levels = as.character(1982:2020))
   ) %>%
   dplyr::select(
-    tattoo, date, sett, pm, socg, SG, sex, age,
+    tattoo, date,
+    sett, sett_id,
+    socg, capture_loc_id,
+    pm, sex, age,
     positive_as_cub, ever_positive, never_positive,
     infection_group, infection_group_label,
-    primary, trap_season, row_index, col_index
+    primary, trap_season,
+    row_index, col_index,
+    SG_id_landscape, habitat
   ) %>%
   ungroup() %>%
   filter(!is.na(primary))
 
-# Remove individuals represented only by post-mortem rows.
 bc <- bc %>%
   group_by(tattoo) %>%
   filter(!all(pm == "Yes")) %>%
@@ -509,7 +913,6 @@ if (nrow(bc) == 0) {
   stop("No observations remain after spatial/date/pm filtering.")
 }
 
-# Keep the original +1 primary indexing for now.
 bc <- bc %>%
   mutate(
     primary = as.numeric(primary) + 1L,
@@ -518,6 +921,10 @@ bc <- bc %>%
 
 if (anyNA(bc$trap_season)) {
   stop("trap_season contains NA after conversion to integer.")
+}
+
+if (anyNA(bc$row_index) || anyNA(bc$col_index)) {
+  stop("bc has NA row_index/col_index after joining updated settGrid.")
 }
 
 
@@ -576,10 +983,11 @@ if (nind == 0) {
   stop("No individuals remain after death-constraint filtering.")
 }
 
-SGs <- levels(as.factor(bc$SG))
+# Capture locations used by the observation model.
+capture_locs <- levels(as.factor(bc$capture_loc_id))
 
 settGrid <- settGrid %>%
-  filter(SG %in% SGs)
+  filter(capture_loc_id %in% capture_locs)
 
 ids <- unique(bc$tattoo)
 
@@ -617,11 +1025,12 @@ for (i in seq_along(death.primary)) {
   }
 }
 
-sett_map <- setNames(seq_along(SGs), SGs)
-bc$SGnum <- as.integer(sett_map[bc$SG])
+capture_loc_map <- setNames(seq_along(capture_locs), capture_locs)
 
-if (anyNA(bc$SGnum)) {
-  stop("Some SG values could not be mapped to sett indices.")
+bc$capture_loc_num <- as.integer(capture_loc_map[bc$capture_loc_id])
+
+if (anyNA(bc$capture_loc_num)) {
+  stop("Some capture_loc_id values could not be mapped to capture-location indices.")
 }
 
 H <- array(1L, dim = c(nind, n.sec, n.prim), dimnames = list(ids, NULL, NULL))
@@ -631,13 +1040,13 @@ for (row_i in seq_len(nrow(bc))) {
   s <- bc$trap_season[row_i]
   ind <- bc$tattoo[row_i]
   
-  H[ind, s, p] <- bc$SGnum[row_i] + 1L
+  H[ind, s, p] <- bc$capture_loc_num[row_i] + 1L
 }
 
-R <- length(unique(bc$SGnum))
+R <- length(unique(bc$capture_loc_num))
 
-settGrid$SG <- factor(settGrid$SG, levels = SGs)
-settGrid <- settGrid[order(settGrid$SG), ]
+settGrid$capture_loc_id <- factor(settGrid$capture_loc_id, levels = capture_locs)
+settGrid <- settGrid[order(settGrid$capture_loc_id), ]
 rownames(settGrid) <- NULL
 
 X <- settGrid %>%
@@ -667,10 +1076,8 @@ group <- bc %>%
 first_location <- bc %>%
   arrange(date) %>%
   distinct(tattoo, .keep_all = TRUE) %>%
-  pull(SGnum)
+  pull(capture_loc_num)
 
-# Sort individuals so those with K == first come first, matching the original
-# Ergon & Gardner-style code split.
 ord <- order(K - first)
 
 K <- K[ord]
@@ -725,12 +1132,63 @@ cat("Any NA in group: ", anyNA(group), "\n")
 cat("Any NA in first: ", anyNA(first), "\n")
 cat("Any NA in K: ", anyNA(K), "\n")
 cat("Any K < first: ", any(K < first), "\n")
+cat("Any NA in habitat_mat: ", anyNA(habitat_mat), "\n")
+cat("Any NA in SG_mat: ", anyNA(SG_mat), "\n")
 
 if (anyNA(as.matrix(X))) stop("X contains NA values.")
+if (anyNA(H)) stop("H contains NA values.")
 if (anyNA(first_location)) stop("first_location contains NA values.")
 if (anyNA(group)) stop("group contains NA values.")
 if (any(K < first)) stop("Some individuals have K < first.")
+if (anyNA(habitat_mat)) stop("habitat_mat contains NA values.")
+if (anyNA(SG_mat)) stop("SG_mat contains NA values.")
 
+if (!all(sort(unique(as.vector(habitat_mat))) %in% c(0L, 1L))) {
+  stop("habitat_mat must only contain 0 = lake and 1 = land.")
+}
+
+if (!identical(dim(habitat_mat), dim(SG_mat))) {
+  stop("habitat_mat and SG_mat have different dimensions.")
+}
+
+n_rows <- nrow(habitat_mat)
+n_cols <- ncol(habitat_mat)
+
+
+# ---- 6b. Input validity checks ---------------------------------------------
+
+cat("\nInput validity checks before nimbleModel()\n")
+cat("Any NA in X: ", anyNA(as.matrix(X)), "\n")
+cat("Any NA in H: ", anyNA(H), "\n")
+cat("Any NA in first_location: ", anyNA(first_location), "\n")
+cat("Any NA in group: ", anyNA(group), "\n")
+cat("Any NA in first: ", anyNA(first), "\n")
+cat("Any NA in K: ", anyNA(K), "\n")
+cat("Any K < first: ", any(K < first), "\n")
+cat("Any NA in habitat_mat: ", anyNA(habitat_mat), "\n")
+cat("Any NA in SG_mat: ", anyNA(SG_mat), "\n")
+
+if (anyNA(as.matrix(X))) stop("X contains NA values.")
+if (anyNA(H)) stop("H contains NA values.")
+if (anyNA(first_location)) stop("first_location contains NA values.")
+if (anyNA(group)) stop("group contains NA values.")
+if (any(K < first)) stop("Some individuals have K < first.")
+if (anyNA(habitat_mat)) stop("habitat_mat contains NA values.")
+if (anyNA(SG_mat)) stop("SG_mat contains NA values.")
+
+if (!all(sort(unique(as.vector(habitat_mat))) %in% c(0L, 1L))) {
+  stop("habitat_mat must only contain 0 = lake and 1 = land.")
+}
+
+if (!identical(dim(habitat_mat), dim(SG_mat))) {
+  stop("habitat_mat and SG_mat have different dimensions.")
+}
+
+n_rows <- nrow(habitat_mat)
+n_cols <- ncol(habitat_mat)
+
+
+# ---- 7. NIMBLE model --------------------------------------------------------
 
 # ---- 7. NIMBLE model --------------------------------------------------------
 
@@ -740,25 +1198,24 @@ code <- nimbleCode({
   
   for (grp in 1:2) {
     
-    # Detection kernel shape and scale.
-    # Lower bounds are away from zero to avoid 0/0 or 0^0 behaviour in G.
     kappa[grp] ~ dunif(0.25, 10)
     sigma[grp] ~ dunif(0.25, 30)
     
-    # Baseline capture probability.
     PL[grp] ~ dunif(0.01, 0.99)
     log.lambda0[grp] <- log(-log(1 - PL[grp]))
     lambda[grp] <- exp(log.lambda0[grp])
     
-    # Annual survival.
     for (k in 1:(n.prim - 1)) {
       phi[grp, k] ~ dunif(0.001, 0.999)
     }
     
-    # Annual activity-centre movement distance.
     dmean[grp] ~ dunif(0.25, 100)
     dlambda[grp] <- 1 / dmean[grp]
   }
+  
+  # Shared landscape penalties for first implementation.
+  lake_penalty ~ dexp(1)
+  boundary_penalty ~ dexp(1)
   
   
   ## MODEL
@@ -770,6 +1227,17 @@ code <- nimbleCode({
     
     S[i, 1, first[i]] <- X[first_location[i], 1]
     S[i, 2, first[i]] <- X[first_location[i], 2]
+    
+    col_S[i, first[i]] <- max(1, min(n_cols, trunc(S[i, 1, first[i]])))
+    row_S[i, first[i]] <- max(1, min(n_rows, trunc(S[i, 2, first[i]])))
+    
+    habitat_here[i, first[i]] <- habitat_mat[row_S[i, first[i]], col_S[i, first[i]]]
+    SG_here[i, first[i]]      <- SG_mat[row_S[i, first[i]], col_S[i, first[i]]]
+    
+    p_land[i, first[i]] <- habitat_here[i, first[i]] +
+      (1 - habitat_here[i, first[i]]) * exp(-lake_penalty)
+    
+    land_ok[i, first[i]] ~ dbern(p_land[i, first[i]])
     
     g[i, first[i], 1] <- 0
     
@@ -808,6 +1276,17 @@ code <- nimbleCode({
     
     S[i, 1, first[i]] <- X[first_location[i], 1]
     S[i, 2, first[i]] <- X[first_location[i], 2]
+    
+    col_S[i, first[i]] <- max(1, min(n_cols, trunc(S[i, 1, first[i]])))
+    row_S[i, first[i]] <- max(1, min(n_rows, trunc(S[i, 2, first[i]])))
+    
+    habitat_here[i, first[i]] <- habitat_mat[row_S[i, first[i]], col_S[i, first[i]]]
+    SG_here[i, first[i]]      <- SG_mat[row_S[i, first[i]], col_S[i, first[i]]]
+    
+    p_land[i, first[i]] <- habitat_here[i, first[i]] +
+      (1 - habitat_here[i, first[i]]) * exp(-lake_penalty)
+    
+    land_ok[i, first[i]] ~ dbern(p_land[i, first[i]])
     
     g[i, first[i], 1] <- 0
     
@@ -852,6 +1331,24 @@ code <- nimbleCode({
       S[i, 1, k] <- S[i, 1, k - 1] + d[i, k - 1] * cos(theta[i, k - 1])
       S[i, 2, k] <- S[i, 2, k - 1] + d[i, k - 1] * sin(theta[i, k - 1])
       
+      col_S[i, k] <- max(1, min(n_cols, trunc(S[i, 1, k])))
+      row_S[i, k] <- max(1, min(n_rows, trunc(S[i, 2, k])))
+      
+      habitat_here[i, k] <- habitat_mat[row_S[i, k], col_S[i, k]]
+      SG_here[i, k]      <- SG_mat[row_S[i, k], col_S[i, k]]
+      
+      p_land[i, k] <- habitat_here[i, k] +
+        (1 - habitat_here[i, k]) * exp(-lake_penalty)
+      
+      land_ok[i, k] ~ dbern(p_land[i, k])
+      
+      same_SG[i, k] <- equals(SG_here[i, k], SG_here[i, k - 1])
+      
+      p_boundary[i, k] <- same_SG[i, k] +
+        (1 - same_SG[i, k]) * exp(-boundary_penalty)
+      
+      boundary_ok[i, k] ~ dbern(p_boundary[i, k])
+      
       g[i, k, 1] <- 0
       
       for (r in 1:R) {
@@ -886,7 +1383,6 @@ code <- nimbleCode({
 
 
 # ---- 8. Initial values ------------------------------------------------------
-
 set.seed(RANDOM_SEED)
 
 inits <- make_spatial_initial_values(
@@ -904,8 +1400,13 @@ if (anyNA(inits$S)) {
 
 message("Initial S array successfully created with no NA values.")
 
-
 # ---- 9. Build model ---------------------------------------------------------
+land_ok <- matrix(1L, nrow = nind, ncol = n.prim)
+
+boundary_ok <- matrix(NA_integer_, nrow = nind, ncol = n.prim)
+if (n.prim >= 2) {
+  boundary_ok[, 2:n.prim] <- 1L
+}
 
 consts <- list(
   R = nrow(X),
@@ -918,26 +1419,42 @@ consts <- list(
   H = H,
   death.occasion = death.occasion,
   group = group,
-  first_location = first_location
+  first_location = first_location,
+  
+  # These are constants because they define dimensions/limits
+  n_rows = n_rows,
+  n_cols = n_cols
 )
 
 data <- list(
   Ones = array(1L, dim(H)),
-  z = z_data
+  z = z_data,
+  
+  # Pseudo-observation data
+  land_ok = land_ok,
+  boundary_ok = boundary_ok,
+  
+  # IMPORTANT:
+  # These are dynamically indexed inside the model,
+  # so they must be supplied as data, not constants.
+  habitat_mat = habitat_mat,
+  SG_mat = SG_mat
 )
 
 model <- nimbleModel(
   code,
   constants = consts,
   data = data,
-  inits = inits
+  inits = inits,
+  dimensions = list(
+    habitat_mat = dim(habitat_mat),
+    SG_mat = dim(SG_mat),
+    land_ok = dim(land_ok),
+    boundary_ok = dim(boundary_ok),
+    Ones = dim(H),
+    z = dim(z_data)
+  )
 )
-
-# Useful if something fails at model build:
-# model$initializeInfo()
-
-cModel <- compileNimble(model)
-
 
 # ---- 10. Configure MCMC -----------------------------------------------------
 
@@ -1008,10 +1525,17 @@ if (MONITOR_LATENT) {
 }
 
 rMCMC <- buildMCMC(config)
-cMCMC <- compileNimble(rMCMC)
+
+# Compile the model first
+cModel <- compileNimble(model)
+
+# Then compile the MCMC using the model project
+cMCMC <- compileNimble(rMCMC, project = model)
 
 
 # ---- 11. Run MCMC -----------------------------------------------------------
+
+TEST_RUN <- FALSE
 
 if (TEST_RUN) {
   niter <- MCMC_NITER_TEST
@@ -1045,7 +1569,7 @@ system.time(
 
 output_path <- file.path(
   out_dir,
-  paste0("spatial_cmr_infection_group_adjusted_first_location_", output_suffix, ".rds")
+  paste0("spatial_cmr_infection_group_habitat_and_SG", output_suffix, ".rds")
 )
 
 saveRDS(run, output_path)
